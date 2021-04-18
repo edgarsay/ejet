@@ -73,6 +73,32 @@ var Component = {
         };
     },
     /**
+     * @param {String} text
+     * @param {Number} width
+     * @param {Number} height
+     * @param {Number} offSetX
+     * @param {Number} offSetY
+     * @param {Array<Number>} color = [red, green, blue, alpha]
+     */
+    text: function (text, width, height, offSetX, offSetY, color) {
+        if (offSetX !== 0) {
+            offSetX = offSetX || -width / 2;
+        }
+        if (offSetY !== 0) {
+            offSetY = offSetY || -height / 2;
+        }
+        return {
+            null: true,
+            type: 'text',
+            text: text || '',
+            width: width || 0,
+            height: height || 0,
+            offSetX: offSetX,
+            offSetY: offSetY,
+            color: color || [1, 1, 1, 1]
+        };
+    },
+    /**
      * @param {Array<Object>} sourceFrame - framse em sequencia para animação
      * @example [{x, y, width, height}, ...]
      */
