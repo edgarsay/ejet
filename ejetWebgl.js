@@ -23,6 +23,26 @@ var shadersSource = {
             'gl_FragColor = v_color;',
             '}'
         ].join('\n'),
+    //Text
+        'vertex-text': [
+            'attribute vec4 a_position;',
+            'attribute vec2 a_texcoord;',
+            'uniform mat4 u_matrix;',
+            'varying vec2 v_texcoord;',
+            'void main() {',
+            'gl_Position = u_matrix * a_position;',
+            'v_texcoord = a_texcoord;',
+            '}'
+        ].join('\n'),
+        'fragment-text': [
+            'precision mediump float;',
+            'varying vec2 v_texcoord;',
+            'uniform sampler2D u_texture;',
+            'uniform vec4 u_color;',
+            'void main() {',
+            'gl_FragColor = texture2D(u_texture, v_texcoord) * u_color;',
+            '}'
+        ].join('\n'),
     //Texture
         'vertex-texture': [
             'attribute vec4 a_position;',
@@ -39,6 +59,7 @@ var shadersSource = {
             'precision mediump float;',
             'varying vec2 v_texcoord;',
             'uniform sampler2D texture;',
+            'uniform vec4 u_color;',
             'void main() {',
             'if (v_texcoord.x < 0.0 ||',
             'v_texcoord.y < 0.0 ||',
@@ -47,7 +68,7 @@ var shadersSource = {
             'gl_FragColor = vec4(0, 0, 0, 0);',
             'return;',
             '}',
-            'gl_FragColor = texture2D(texture, v_texcoord);',
+            'gl_FragColor = texture2D(texture, v_texcoord) * u_color;',
             'gl_FragColor.rgb *= gl_FragColor.a;',
             '}'
         ].join('\n')
@@ -313,6 +334,21 @@ MatrixStack.prototype.scale = function (x, y, z) {
     this.setCurrentMatrix(m4.scale(m, x, y, z));
 };
 
+//Text dependency:
+var textCtx = document.createElement("canvas").getContext("2d");
+// Puts text in center of canvas.
+function makeTextCanvas(text, width, height) {
+    textCtx.canvas.width  = width;
+    textCtx.canvas.height = height;
+    textCtx.font = "20px monospace";
+    textCtx.textAlign = "center";
+    textCtx.textBaseline = "middle";
+    textCtx.fillStyle = "white";
+    textCtx.clearRect(0, 0, textCtx.canvas.width, textCtx.canvas.height);
+    textCtx.fillText(text, width / 2, height / 2);
+    return textCtx.canvas;
+}
+
 // inicalização
 var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
         textureProgram = null, tPosition = null, tTexcoord = null,
@@ -322,35 +358,32 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
         sColorBuffer = null, positionBuffer = null, positions = null,
         sPositions = null, sColors = null, trianglesPoints = null,
         texcoordBuffer = null, texcoords = null, drawImage = null,
-        drawShape = null, matrixStack = null,
+        drawShape = null, matrixStack = null, createTextTextureInfo = null,
+        textProgram = null, drawText = null, tColor,
         init = function (canvasQuerySelector) {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
     canvas = document.querySelector(canvasQuerySelector);
-    gl = canvas.getContext('webgl', {alpha: false, premultipliedAlpha: false});
+    gl = canvas.getContext('webgl');
     if (!gl) {
         return;
     }
-
     matrixStack = new MatrixStack();
 
-    // setup GLSL program - Texture
+    // initialize Texture
     textureProgram = createProgramFrom(gl, 'vertex-texture', 'fragment-texture');
-
-    // look up where the vertex data needs to go. - At
+    // look up where the vertex data needs to go.
     tPosition = gl.getAttribLocation(textureProgram, 'a_position');
     tTexcoord = gl.getAttribLocation(textureProgram, 'a_texcoord');
-
     // lookup uniforms
     tMatrix = gl.getUniformLocation(textureProgram, 'u_matrix');
     tTextureMatrix = gl.getUniformLocation(textureProgram,
             'u_textureMatrix');
     tTexture = gl.getUniformLocation(textureProgram, 'u_texture');
-
+    tColor = gl.getUniformLocation(textureProgram, 'u_color');
     // Create a buffer.
     positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
     // Put a unit quad in the buffer
     positions = [
         0, 0,
@@ -361,11 +394,9 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
         1, 1
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
     // Create a buffer for texture coords
     texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-
     // Put texcoords in the buffer
     texcoords = [
         0, 0,
@@ -383,40 +414,28 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
     sColor = gl.getAttribLocation(shaperProgram, 'a_color');
     sMatrix = gl.getUniformLocation(shaperProgram, 'u_matrix');
     sPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, sPositionBuffer);
-
-    //set triangle
-    trianglesPoints = [
-        // left column front
-        0, 0, 0,
-        1, 0, 0,
-        0.5, -0.8660254037844386, 0
-    ];
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Float32Array([
-            // left column front
-            255, 0, 0,
-            255, 0, 0,
-            255, 0, 0
-        ]),
-        gl.STATIC_DRAW
-    );
-     // Create a buffer to put colors in
     sColorBuffer = gl.createBuffer();
-    // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = colorBuffer)
-    gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
-    // Put geometry data into buffer
-    // Fill the buffer with colors for the 'F'.
-    gl.bufferData(
-        gl.ARRAY_BUFFER,
-        new Uint8Array([
-            255, 0, 0,
-            255, 0, 0,
-            255, 0, 0
-        ]),
-        gl.STATIC_DRAW
-    );
+
+    // Text initialize
+
+    createTextTextureInfo = function (name, width, height) {
+        var textCanvas = makeTextCanvas(name, width, height),
+            textWidth  = textCanvas.width,
+            textHeight = textCanvas.height,
+            textTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, textTex);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
+        // make sure we can render it even if it's not a power of 2
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        return {
+            texture: textTex,
+            width: textWidth,
+            height: textHeight
+        };
+    };
 
     loadImageAndCreateTextureInfo = function (url, pixelart) {
         pixelart = pixelart || true;
@@ -518,6 +537,8 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
 
         // Set the texture matrix.
         gl.uniformMatrix4fv(tTextureMatrix, false, texMatrix);
+
+        gl.uniform4fv(tColor, [1, 1, 1, 1]);
 
         // Tell the shader to get the texture from texture unit 0
         gl.uniform1i(tTexture, 0);
@@ -626,5 +647,54 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
             var count = 6;
             gl.drawArrays(gl.TRIANGLES, 0, count);
         }
+    };
+    drawText = function (textTexture, x, y, textColor) {
+        textColor = textColor || [0, 0, 0, 1];
+        gl.bindTexture(gl.TEXTURE_2D, textTexture.texture);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+        // Tell WebGL to use our shader program pair
+        gl.useProgram(textureProgram);
+
+        // Setup the attributes to pull data from our buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.enableVertexAttribArray(tPosition);
+        gl.vertexAttribPointer(tPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+        gl.enableVertexAttribArray(tTexcoord);
+        gl.vertexAttribPointer(tTexcoord, 2, gl.FLOAT, false, 0, 0);
+
+        // this matrix will convert from pixels to clip space
+        var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
+
+        // this matrix moves the origin to the one represented by
+        // the current matrix stack.
+        matrix = m4.multiply(matrix, matrixStack.getCurrentMatrix());
+
+        // this matrix will translate our quad to dstX, dstY
+        matrix = m4.translate(matrix, x, y, -1); // this matrix will scale our 1 unit quad // from 1 unit to texWidth, texHeight units
+        matrix = m4.scale(matrix, textTexture.width, textTexture.height, 1);
+
+        // Set the matrix.
+        gl.uniformMatrix4fv(tMatrix, false, matrix);
+
+        // Because texture coordinates go from 0 to 1
+        // and because our texture coordinates are already a unit quad
+        // we can select an area of the texture by scaling the unit quad
+        // down
+        // var texMatrix = m4.translation(srcX / texWidth, srcY / texHeight, 0);
+        // texMatrix = m4.scale(texMatrix, srcWidth / texWidth, srcHeight / texHeight, 1);
+
+        // Set the texture matrix.
+        gl.uniformMatrix4fv(tTextureMatrix, false, m4.identity());
+
+        //set text color
+        gl.uniform4fv(tColor, textColor);
+        // Tell the shader to get the texture from texture unit 0
+        gl.uniform1i(tTexture, 0);
+
+        // draw the quad (2 triangles, 6 vertices)
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
 };
