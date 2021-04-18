@@ -76,7 +76,7 @@ var Component = {
      * @param {Array<Object>} sourceFrame - framse em sequencia para animação
      * @example [{x, y, width, height}, ...]
      */
-    animation: function (sourceFrame, fps) {
+    spriteAnimation: function (sourceFrame, fps) {
         sourceFrame = sourceFrame || [];
         return {
             null: true,
