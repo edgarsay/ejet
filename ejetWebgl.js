@@ -322,7 +322,7 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
         sColorBuffer = null, positionBuffer = null, positions = null,
         sPositions = null, sColors = null, trianglesPoints = null,
         texcoordBuffer = null, texcoords = null, drawImage = null,
-        drawTriangle = null,drawSquare = null, matrixStack = null,
+        drawShape = null, matrixStack = null,
         init = function (canvasQuerySelector) {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
@@ -525,112 +525,106 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
         // draw the quad (2 triangles, 6 vertices)
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
-    drawTriangle = function (x, y, width, height, rotation) {
-        gl.useProgram(shaperProgram);
-        // Turn on the position attribute
-        gl.enableVertexAttribArray(sPosition);
+    drawShape = {
+        'triangle': function (x, y, width, height, rotation) {
+            gl.useProgram(shaperProgram);
+            // Turn on the position attribute
+            gl.enableVertexAttribArray(sPosition);
 
-        // Bind the position buffer.
-        gl.bindBuffer(gl.ARRAY_BUFFER, sPositionBuffer);
+            // Bind the position buffer.
+            gl.bindBuffer(gl.ARRAY_BUFFER, sPositionBuffer);
 
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array([
-                0, 1, 0,
-                1, 1, 0,
-                0.5, 0, 0
-            ]),
-            gl.STATIC_DRAW
-        );
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array([
+                    0, 1, 0,
+                    1, 1, 0,
+                    0.5, 0, 0
+                ]),
+                gl.STATIC_DRAW
+            );
+            // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+            gl.vertexAttribPointer(sPosition, 3, gl.FLOAT, false, 0, 0);
+            // Turn on the color attribute
+            gl.enableVertexAttribArray(sColor);
+            // Bind the color buffer.
+            gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    255, 0, 0,
+                    255, 0, 0,
+                    255, 0, 0
+                ]),
+                gl.STATIC_DRAW
+            );
+            gl.vertexAttribPointer(sColor, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+            var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
+            matrix = m4.zRotate(matrix, rotation || 0);
+            matrix = m4.translate(matrix, x, y, 0);
+            matrix = m4.scale(matrix, width, height, 1);
+            // Set the matrix.
+            gl.uniformMatrix4fv(sMatrix, false, matrix);
+            // Draw the geometry.
+            var count = 3;
+            gl.drawArrays(gl.TRIANGLES, 0, count);
+        },
+        'square': function (x, y, width, height, rotation) {
+            gl.useProgram(shaperProgram);
+            // Turn on the position attribute
+            gl.enableVertexAttribArray(sPosition);
 
-        // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        gl.vertexAttribPointer(sPosition, 3, gl.FLOAT, false, 0, 0);
+            // Bind the position buffer.
+            gl.bindBuffer(gl.ARRAY_BUFFER, sPositionBuffer);
 
-        // Turn on the color attribute
-        gl.enableVertexAttribArray(sColor);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array([
+                    0, 0, 0,
+                    0, 1, 0,
+                    1, 0, 0,
+                    1, 0, 0,
+                    0, 1, 0,
+                    1, 1, 0
+                ]),
+                gl.STATIC_DRAW
+            );
 
-        // Bind the color buffer.
-        gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
+            // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+            gl.vertexAttribPointer(sPosition, 3, gl.FLOAT, false, 0, 0);
 
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Uint8Array([
-                255, 0, 0,
-                255, 0, 0,
-                255, 0, 0
-            ]),
-            gl.STATIC_DRAW
-        );
+            // Turn on the color attribute
+            gl.enableVertexAttribArray(sColor);
 
-        gl.vertexAttribPointer(sColor, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+            // Bind the color buffer.
+            gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
 
-        var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
-        matrix = m4.zRotate(matrix, rotation || 0);
-        matrix = m4.translate(matrix, x, y, 0);
-        matrix = m4.scale(matrix, width, height, 1);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Uint8Array([
+                    255, 0, 0,
+                    255, 0, 0,
+                    255, 0, 0,
+                    255, 0, 0,
+                    255, 0, 0,
+                    255, 0, 0
+                ]),
+                gl.STATIC_DRAW
+            );
 
-        // Set the matrix.
-        gl.uniformMatrix4fv(sMatrix, false, matrix);
+            gl.vertexAttribPointer(sColor, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-        // Draw the geometry.
-        var count = 3;
-        gl.drawArrays(gl.TRIANGLES, 0, count);
+            var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
+            matrix = m4.zRotate(matrix, rotation || 0);
+            matrix = m4.translate(matrix, x, y, 0);
+            matrix = m4.scale(matrix, width, height, 1);
+
+            // Set the matrix.
+            gl.uniformMatrix4fv(sMatrix, false, matrix);
+
+            // Draw the geometry.
+            var count = 6;
+            gl.drawArrays(gl.TRIANGLES, 0, count);
+        }
     };
-    drawSquare = function (x, y, width, height, rotation) {
-        gl.useProgram(shaperProgram);
-        // Turn on the position attribute
-        gl.enableVertexAttribArray(sPosition);
-
-        // Bind the position buffer.
-        gl.bindBuffer(gl.ARRAY_BUFFER, sPositionBuffer);
-
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array([
-                0, 0, 0,
-                0, 1, 0,
-                1, 0, 0,
-                1, 0, 0,
-                0, 1, 0,
-                1, 1, 0
-            ]),
-            gl.STATIC_DRAW
-        );
-
-        // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        gl.vertexAttribPointer(sPosition, 3, gl.FLOAT, false, 0, 0);
-
-        // Turn on the color attribute
-        gl.enableVertexAttribArray(sColor);
-
-        // Bind the color buffer.
-        gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
-
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Uint8Array([
-                255, 0, 0,
-                255, 0, 0,
-                255, 0, 0,
-                255, 0, 0,
-                255, 0, 0,
-                255, 0, 0
-            ]),
-            gl.STATIC_DRAW
-        );
-
-        gl.vertexAttribPointer(sColor, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-
-        var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
-        matrix = m4.zRotate(matrix, rotation || 0);
-        matrix = m4.translate(matrix, x, y, 0);
-        matrix = m4.scale(matrix, width, height, 1);
-
-        // Set the matrix.
-        gl.uniformMatrix4fv(sMatrix, false, matrix);
-
-        // Draw the geometry.
-        var count = 6;
-        gl.drawArrays(gl.TRIANGLES, 0, count);
-    }
 };

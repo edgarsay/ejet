@@ -1,19 +1,9 @@
-/*global console, Array, matrixStack, drawImage, loadImageAndCreateTextureInfo, ejetInput*/
+/*global console, Array, matrixStack, drawImage, loadImageAndCreateTextureInfo, ejetInput, drawShape*/
 'use strict';
 
 var MAX_ENTITYS = 200;
 
 var Component = {
-    /**
-     * @param {Array<Entity>} entitys
-     */
-    children: function (entitys) {
-        return {
-            null: true,
-            type: 'children',
-            entitys: entitys || []
-        };
-    },
     transform: function (x, y, scaleX, scaleY, rotation) {
         return {
             null: true,
@@ -38,18 +28,48 @@ var Component = {
         };
     },
     sprite: function (textureInfo, width, height, sourceX, sourceY, x, y) {
+        if (x !== 0) {
+            x = x || -width / 2;
+        }
+        if (y !== 0) {
+            y = y || -height / 2;
+        }
         return {
             null: true,
             type: 'sprite',
             textureInfo: textureInfo || {},
             width: width || 0,
             height: height || 0,
-            x: x || -width / 2,
-            y: y || -height / 2,
             sourceX: sourceX || 0,
             sourceY: sourceY || 0,
+            x: x,
+            y: y,
             flipX: false,
             flipY: false
+        };
+    },
+    /**
+     * @param {String} typeOfShape - triangle or square
+     * @param {Number} width
+     * @param {Number} height
+     * @param {Number} offSetX
+     * @param {Number} offSetY
+     */
+    shape: function (typeOfShape, width, height, offSetX, offSetY) {
+        if (offSetX !== 0) {
+            offSetX = offSetX || -width / 2;
+        }
+        if (offSetY !== 0) {
+            offSetY = offSetY || -height / 2;
+        }
+        return {
+            null: true,
+            type: 'shape',
+            typeOfShape: typeOfShape || 'triangle',
+            width: width || 0,
+            height: height || 0,
+            offSetX: offSetX,
+            offSetY: offSetY
         };
     },
     /**
@@ -67,16 +87,6 @@ var Component = {
             frames: sourceFrame,
             length: sourceFrame.length
         };
-    },
-    /**
-     * @param {Object} configs - {key:String : action:function, ...}
-     */
-    controll: function (configs) {
-        return {
-            null: true,
-            type: 'controll',
-            configs: configs || {}
-        };
     }
 };
 
@@ -88,15 +98,16 @@ Object.keys(Component).forEach(function (name) {
 var EntityCounter = 0,
     Entity = function () {
         var nEntity = {
-            id: EntityCounter
+            id: EntityCounter,
+            children: []
         };
-        nEntity.addComponent = function (component) {
+        nEntity.add = function (component) {
+            var type = component.type;
             component.null = false;
-            Holder[component.type][nEntity.id] = component;
+            Holder[type][nEntity.id] = component;
             return nEntity;
         };
-
-        nEntity.getComponent = function (componentType) {
+        nEntity.get = function (componentType) {
             try {
                 var component = Holder[componentType][nEntity.id];
                 if (!component.null) {
@@ -108,10 +119,10 @@ var EntityCounter = 0,
                 throw new Error(error);
             }
         };
-        nEntity.setComponent = function (component) {
+        nEntity.set = function (component) {
             Holder[component.type][nEntity.id] = component;
         };
-        nEntity.removeComponent = function (componentType) {
+        nEntity.remove = function (componentType) {
             Holder[componentType][nEntity.id].null = true;
             return nEntity;
         };
@@ -123,40 +134,56 @@ var EntityCounter = 0,
 
 var System = {
     render: function (entity) {
-        var transform = entity.getComponent('transform'),
-            sprite = entity.getComponent('sprite');
-        if (!transform || !sprite) {
+        var transform = entity.get('transform'),
+            sprite = entity.get('sprite'),
+            shape = entity.get('shape');
+        if (!transform || (!sprite && !shape)) {
             return;
         }
-        var textureInfo = sprite.textureInfo,
-            scaleX = transform.scaleX,
-            scaleY = transform.scaleY;
+        if (sprite) { // render SPRITE
+            var textureInfo = sprite.textureInfo,
+                scaleX = transform.scaleX,
+                scaleY = transform.scaleY;
 
-        if (sprite.flipX) {
-            scaleX *= -1;
+            if (sprite.flipX) {
+                scaleX *= -1;
+            }
+            if (sprite.flipY) {
+                scaleY *= -1;
+            }
+            matrixStack.save();
+            matrixStack.translate(transform.x, transform.y);
+            matrixStack.scale(scaleX, scaleY);
+            drawImage(
+                textureInfo.texture,
+                textureInfo.width,
+                textureInfo.height,
+                sprite.sourceX,
+                sprite.sourceY,
+                sprite.width,
+                sprite.height,
+                sprite.x,
+                sprite.y
+            );
+            matrixStack.restore();
         }
-        if (sprite.flipY) {
-            scaleY *= -1;
+        if (shape) { // render SHAPE
+            matrixStack.save();
+            matrixStack.translate(transform.x, transform.y);
+            matrixStack.scale(transform.scaleX, transform.scaleY);
+            drawShape[shape.typeOfShape](
+                transform.x + shape.offSetX,
+                transform.y + shape.offSetY,
+                shape.width,
+                shape.height
+                );
+            matrixStack.restore();
         }
-        matrixStack.save();
-        matrixStack.translate(transform.x, transform.y);
-        matrixStack.scale(scaleX, scaleY);
-        drawImage(
-            textureInfo.texture,
-            textureInfo.width,
-            textureInfo.height,
-            sprite.sourceX,
-            sprite.sourceY,
-            sprite.width,
-            sprite.height,
-            sprite.x,
-            sprite.y
-        );
-        matrixStack.restore();
     },
-    movement: function (entity, delta) {
-        var transform = entity.getComponent('transform'),
-            motion = entity.getComponent('motion');
+    movement: function (entity, delta, parentMotion) {
+        var transform = entity.get('transform'),
+            motion = parentMotion || entity.get('motion'),
+            children = entity.children;
         if (!transform || !motion) {
             return;
         }
@@ -169,10 +196,16 @@ var System = {
         transform.y += speed[1] * delta;
         speed[0] += acceleration[0] * delta;
         speed[1] += acceleration[1] * delta;
+        if (children.length === 0) {
+            return;
+        }
+        children.forEach(function (child) {
+            System.movement(child, delta, motion);
+        });
     },
     animate: function (entity, delta) {
-        var sprite = entity.getComponent('sprite'),
-            animation = entity.getComponent('animation');
+        var sprite = entity.get('sprite'),
+            animation = entity.get('animation');
         if (!sprite || !animation) {
             return;
         }
@@ -191,20 +224,5 @@ var System = {
         }
         animation.interval = interval;
         animation.currFrame = currFrame;
-    },
-    controll: function (entity, delta) {
-        var controll = entity.getComponent('controll');
-        if (!controll) {
-            return;
-        }
-        var configs = controll.configs;
-        //rule =[combo:string, state:function, action:function]
-        configs.forEach(function (rule) {
-            if (ejetInput[rule[1]](rule[0])) {
-                rule[2](delta);
-            }
-
-        });
-
     }
 };
