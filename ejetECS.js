@@ -87,12 +87,11 @@ var Component = {
         if (offSetY !== 0) {
             offSetY = offSetY || -height / 2;
         }
+        text = text || '';
         return {
             null: true,
             type: 'text',
-            text: text || '',
-            width: width || 0,
-            height: height || 0,
+            textInfo: createTextTextureInfo(text, width, height),
             offSetX: offSetX,
             offSetY: offSetY,
             color: color || [1, 1, 1, 1]
@@ -106,7 +105,7 @@ var Component = {
         sourceFrame = sourceFrame || [];
         return {
             null: true,
-            type: 'animation',
+            type: 'spriteAnimation',
             currFrame: 0,
             interval: 0,
             fps: 1000 / (fps || 4),
@@ -128,10 +127,15 @@ var EntityCounter = 0,
             children: []
         };
         nEntity.add = function (component) {
-            var type = component.type;
-            component.null = false;
-            Holder[type][nEntity.id] = component;
-            return nEntity;
+            try {
+                var type = component.type;
+                component.null = false;
+                Holder[type][nEntity.id] = component;
+                return nEntity;
+            } catch (error) {
+                console.log('componentType: ' + component.type);
+                throw new Error(error);
+            }
         };
         nEntity.get = function (componentType) {
             try {
@@ -159,52 +163,66 @@ var EntityCounter = 0,
     };
 
 var System = {
-    render: function (entity) {
+    renderSprite: function (entity) {
         var transform = entity.get('transform'),
-            sprite = entity.get('sprite'),
-            shape = entity.get('shape');
-        if (!transform || (!sprite && !shape)) {
+            sprite = entity.get('sprite');
+        if (!transform || !sprite) {
             return;
         }
-        if (sprite) { // render SPRITE
-            var textureInfo = sprite.textureInfo,
-                scaleX = transform.scaleX,
-                scaleY = transform.scaleY;
+        var textureInfo = sprite.textureInfo,
+            scaleX = transform.scaleX,
+            scaleY = transform.scaleY;
 
-            if (sprite.flipX) {
-                scaleX *= -1;
-            }
-            if (sprite.flipY) {
-                scaleY *= -1;
-            }
-            matrixStack.save();
-            matrixStack.translate(transform.x, transform.y);
-            matrixStack.scale(scaleX, scaleY);
-            drawImage(
-                textureInfo.texture,
-                textureInfo.width,
-                textureInfo.height,
-                sprite.sourceX,
-                sprite.sourceY,
-                sprite.width,
-                sprite.height,
-                sprite.x,
-                sprite.y
-            );
-            matrixStack.restore();
+        if (sprite.flipX) {
+            scaleX *= -1;
         }
-        if (shape) { // render SHAPE
-            matrixStack.save();
-            matrixStack.translate(transform.x, transform.y);
-            matrixStack.scale(transform.scaleX, transform.scaleY);
-            drawShape[shape.typeOfShape](
-                transform.x + shape.offSetX,
-                transform.y + shape.offSetY,
-                shape.width,
-                shape.height
-                );
-            matrixStack.restore();
+        if (sprite.flipY) {
+            scaleY *= -1;
         }
+        matrixStack.save();
+        matrixStack.translate(transform.x, transform.y);
+        matrixStack.scale(scaleX, scaleY);
+        drawImage(
+            textureInfo.texture,
+            textureInfo.width,
+            textureInfo.height,
+            sprite.sourceX,
+            sprite.sourceY,
+            sprite.width,
+            sprite.height,
+            sprite.x,
+            sprite.y
+        );
+        matrixStack.restore();
+    },
+    renderShape: function (entity) {
+        var transform = entity.get('transform'),
+            shape = entity.get('shape');
+        if (!transform || !shape) {
+            return;
+        }
+        matrixStack.save();
+        matrixStack.translate(transform.x, transform.y);
+        matrixStack.scale(transform.scaleX, transform.scaleY);
+        drawShape[shape.typeOfShape](
+            transform.x + shape.offSetX,
+            transform.y + shape.offSetY,
+            shape.width,
+            shape.height
+        );
+        matrixStack.restore();
+    },
+    renderText: function (entity) {
+        var transform = entity.get('transform'),
+            text = entity.get('text');
+        if (!transform || !text) {
+            return;
+        }
+        matrixStack.save();
+        matrixStack.translate(transform.x, transform.y);
+        matrixStack.scale(transform.scaleX, transform.scaleY);
+        drawText(text.textInfo, text.offSetX, text.offSetY, text.color);
+        matrixStack.restore();
     },
     movement: function (entity, delta, parentMotion) {
         var transform = entity.get('transform'),
@@ -229,9 +247,9 @@ var System = {
             System.movement(child, delta, motion);
         });
     },
-    animate: function (entity, delta) {
+    animateSprite: function (entity, delta) {
         var sprite = entity.get('sprite'),
-            animation = entity.get('animation');
+            animation = entity.get('spriteAnimation');
         if (!sprite || !animation) {
             return;
         }

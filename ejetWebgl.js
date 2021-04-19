@@ -358,7 +358,7 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
         sColorBuffer = null, positionBuffer = null, positions = null,
         sPositions = null, sColors = null, trianglesPoints = null,
         texcoordBuffer = null, texcoords = null, drawImage = null,
-        drawShape = null, matrixStack = null, createTextTextureInfo = null,
+        drawShape = null, matrixStack = null, createTextTextureInfo = function(){},
         textProgram = null, drawText = null, tColor,
         init = function (canvasQuerySelector) {
     // Get A WebGL context
