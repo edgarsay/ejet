@@ -1,4 +1,5 @@
-/*global console, Array, matrixStack, drawImage, loadImageAndCreateTextureInfo, ejetInput, drawShape*/
+/*global console, Array, matrixStack, drawImage, loadImageAndCreateTextureInfo,
+ ejetInput, drawShape, createTextTextureInfo*/
 'use strict';
 
 var MAX_ENTITYS = 200;
@@ -79,8 +80,9 @@ var Component = {
      * @param {Number} offSetX
      * @param {Number} offSetY
      * @param {Array<Number>} color = [red, green, blue, alpha]
+     * @param {Boolean} pixelart
      */
-    text: function (text, width, height, offSetX, offSetY, color) {
+    text: function (text, width, height, offSetX, offSetY, color, pixelart) {
         if (offSetX !== 0) {
             offSetX = offSetX || -width / 2;
         }
@@ -91,10 +93,18 @@ var Component = {
         return {
             null: true,
             type: 'text',
-            textInfo: createTextTextureInfo(text, width, height),
+            _text: text,
+            textInfo: createTextTextureInfo(text, width, height, pixelart),
             offSetX: offSetX,
             offSetY: offSetY,
-            color: color || [1, 1, 1, 1]
+            color: color || [1, 1, 1, 1],
+            get text() {
+                return this._text;
+            },
+            set text(value) {
+                this._text = value;
+                this.textInfo = createTextTextureInfo(value, width, height, pixelart);
+            }
         };
     },
     /**
