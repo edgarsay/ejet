@@ -418,13 +418,17 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
 
     // Text initialize
 
-    createTextTextureInfo = function (name, width, height) {
+    createTextTextureInfo = function (name, width, height, pixelart) {
         var textCanvas = makeTextCanvas(name, width, height),
             textWidth  = textCanvas.width,
             textHeight = textCanvas.height,
             textTex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, textTex);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        if (pixelart) {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        }
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCanvas);
         // make sure we can render it even if it's not a power of 2
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
