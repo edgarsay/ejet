@@ -124,19 +124,18 @@ var Component = {
         };
     },
     /**
-     * @param {Array<String>} sourceFrame - framse em sequencia para animação
-     * @example ['H','He', 'Hel', 'Hell'...]
+     * @param {String} finalText - final text
      */
-    textAnimation: function (sourceFrame, fps) {
-        sourceFrame = sourceFrame || [];
+    textAnimation: function (finalText, fps) {
+        finalText = finalText || '';
         return {
             null: true,
             type: 'textAnimation',
             currFrame: 0,
             interval: 0,
             fps: 1000 / (fps || 4),
-            frames: sourceFrame,
-            length: sourceFrame.length
+            frames: finalText,
+            length: finalText.length + 1
         };
     }
 };
@@ -310,7 +309,7 @@ var System = {
             currFrame = (currFrame + 1) % animation.length;
             interval = 0;
             //update sprite on entity if necessary
-            text.text = animation.frames[currFrame];
+            text.text = animation.frames.slice(0, currFrame);
         }
         animation.interval = interval;
         animation.currFrame = currFrame;
