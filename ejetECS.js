@@ -1,8 +1,8 @@
 /*global console, Array, matrixStack, drawImage, loadImageAndCreateTextureInfo,
- ejetInput, drawShape, createTextTextureInfo*/
+ ejetInput, drawShape, createTextTextureInfo, drawText*/
 'use strict';
 
-var MAX_ENTITYS = 200;
+var MAX_ENTITYS = 2;
 
 var Component = {
     transform: function (x, y, scaleX, scaleY, rotation) {
@@ -116,6 +116,22 @@ var Component = {
         return {
             null: true,
             type: 'spriteAnimation',
+            currFrame: 0,
+            interval: 0,
+            fps: 1000 / (fps || 4),
+            frames: sourceFrame,
+            length: sourceFrame.length
+        };
+    },
+    /**
+     * @param {Array<String>} sourceFrame - framse em sequencia para animação
+     * @example ['H','He', 'Hel', 'Hell'...]
+     */
+    textAnimation: function (sourceFrame, fps) {
+        sourceFrame = sourceFrame || [];
+        return {
+            null: true,
+            type: 'textAnimation',
             currFrame: 0,
             interval: 0,
             fps: 1000 / (fps || 4),
@@ -275,6 +291,26 @@ var System = {
             var frame = animation.frames[currFrame];
             sprite.sourceX = frame.x;
             sprite.sourceY = frame.y;
+        }
+        animation.interval = interval;
+        animation.currFrame = currFrame;
+    },
+    animateText: function (entity, delta) {
+        var text = entity.get('text'),
+            animation = entity.get('textAnimation');
+        if (!text || !animation) {
+            return;
+        }
+
+        //update animation
+        var interval = animation.interval,
+            currFrame = animation.currFrame;
+        interval += delta;
+        if (interval >= animation.fps) {
+            currFrame = (currFrame + 1) % animation.length;
+            interval = 0;
+            //update sprite on entity if necessary
+            text.text = animation.frames[currFrame];
         }
         animation.interval = interval;
         animation.currFrame = currFrame;
