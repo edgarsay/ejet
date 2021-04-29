@@ -110,8 +110,11 @@ var Component = {
     /**
      * @param {Array<Object>} sourceFrame - framse em sequencia para animação
      * @example [{x, y, width, height}, ...]
+     * @param {Number} fps - frames per second
+     * @param {Boolean} loop
+     * @param {Boolean} stop
      */
-    spriteAnimation: function (sourceFrame, fps) {
+    spriteAnimation: function (sourceFrame, fps, loop, stop) {
         sourceFrame = sourceFrame || [];
         return {
             null: true,
@@ -120,13 +123,18 @@ var Component = {
             interval: 0,
             fps: 1000 / (fps || 4),
             frames: sourceFrame,
-            length: sourceFrame.length
+            length: sourceFrame.length,
+            loop: loop || false,
+            stop: stop || false,
         };
     },
     /**
      * @param {String} finalText - final text
+     * @param {Number} fps - frames per second
+     * @param {Boolean} loop
+     * @param {Boolean} stop
      */
-    textAnimation: function (finalText, fps) {
+    textAnimation: function (finalText, fps, loop, stop) {
         finalText = finalText || '';
         return {
             null: true,
@@ -135,7 +143,9 @@ var Component = {
             interval: 0,
             fps: 1000 / (fps || 4),
             frames: finalText,
-            length: finalText.length + 1
+            length: finalText.length + 1,
+            loop: loop || false,
+            stop: stop || false,
         };
     }
 };
@@ -275,21 +285,26 @@ var System = {
     animateSprite: function (entity, delta) {
         var sprite = entity.get('sprite'),
             animation = entity.get('spriteAnimation');
-        if (!sprite || !animation) {
+        if (!sprite || !animation || animation.stop) {
             return;
         }
 
         //update animation
         var interval = animation.interval,
-            currFrame = animation.currFrame;
+            currFrame = animation.currFrame,
+            len = animation.length;
         interval += delta;
         if (interval >= animation.fps) {
-            currFrame = (currFrame + 1) % animation.length;
+            currFrame = (currFrame + 1) % len;
             interval = 0;
             //update sprite on entity if necessary
             var frame = animation.frames[currFrame];
             sprite.sourceX = frame.x;
             sprite.sourceY = frame.y;
+        }
+        if (!animation.loop && currFrame === len - 1) {
+            animation.stop = true;
+            currFrame = 0;
         }
         animation.interval = interval;
         animation.currFrame = currFrame;
@@ -297,19 +312,24 @@ var System = {
     animateText: function (entity, delta) {
         var text = entity.get('text'),
             animation = entity.get('textAnimation');
-        if (!text || !animation) {
+        if (!text || !animation || animation.stop) {
             return;
         }
 
         //update animation
         var interval = animation.interval,
-            currFrame = animation.currFrame;
+            currFrame = animation.currFrame,
+            len = animation.length;
         interval += delta;
         if (interval >= animation.fps) {
-            currFrame = (currFrame + 1) % animation.length;
+            currFrame = (currFrame + 1) % len;
             interval = 0;
             //update sprite on entity if necessary
             text.text = animation.frames.slice(0, currFrame);
+        }
+        if (!animation.loop && currFrame === len - 1) {
+            animation.stop = true;
+            currFrame = 0;
         }
         animation.interval = interval;
         animation.currFrame = currFrame;
