@@ -350,7 +350,7 @@ function makeTextCanvas(text, width, height) {
 }
 
 // inicalização
-var loadImageAndCreateTextureInfo = null, gl = null, canvas = null,
+var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
         textureProgram = null, tPosition = null, tTexcoord = null,
         tMatrix = null, tTextureMatrix = null, tTexture = null,
         shaperProgram = null, sPosition = null, sColor = null,

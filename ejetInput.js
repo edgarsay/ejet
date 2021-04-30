@@ -29,12 +29,12 @@ var ejetInput = function () {
 
     that.mousePosition = {
         x: 0,
-        y: 0,
+        y: 0
     }
 
     that.lastMousePosition = {
         x: 0,
-        y: 0,
+        y: 0
     }
 
     // initializes all the keyStates to their resting
@@ -368,6 +368,49 @@ var ejetInput = function () {
         realState.mousePosition.x = e.clientX;
         realState.mousePosition.y = e.clientY;
     }
+
+    /**
+     * 
+     * @param {Entity} entity - entity with a hitBox component
+     * @param {Function} action
+     */
+    that.prototype.onMouseOver = function(entity, action) {
+        var hitBox = entity.get('hitBox');
+        var transform = entity.get('transform');
+        if (!hitBox && !transform) {
+            return;
+        }
+        var x = hitBox.xAbsolute + transform.x,
+            y = hitBox.yAbsolute + transform.y,
+            mouseX = realState.mousePosition.x,
+            mouseY = realState.mousePosition.y;
+        if (mouseX > x && mouseX < hitBox.width + x && mouseY > y &&
+                mouseY < hitBox.height + y) {
+                action();
+            }
+    }/**
+     * 
+     * @param {Entity} entity - entity with a hitBox component
+     * @param {Function} action
+     */
+    that.prototype.onClick = function(entity, action) {
+        if (!that.mouseStates[0]) {
+            return;
+        }
+        var hitBox = entity.get('hitBox'),
+            transform = entity.get('transform');
+        if (!hitBox && !transform) {
+            return;
+        }
+        var x = hitBox.xAbsolute + transform.x,
+            y = hitBox.yAbsolute + transform.y,
+            mouseX = realState.mousePosition.x,
+            mouseY = realState.mousePosition.y;
+        if (mouseX > x && mouseX < hitBox.width + x && mouseY > y &&
+                mouseY < hitBox.height + y) {
+                action();
+            }
+    };
 
     // initializes *realState*
     init();
