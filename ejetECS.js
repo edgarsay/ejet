@@ -147,6 +147,24 @@ var Component = {
             loop: loop || false,
             stop: stop || false,
         };
+    },
+    hitBox: function(x, y, width, height){
+        if (x !== 0) {
+            x = x || -width / 2;
+        }
+        if (y !== 0) {
+            y = y || -height / 2;
+        }
+        return {
+            null: true,
+            type: 'hitBox',
+            x: x || 0,
+            y: y || 0,
+            xAbsolute: x + canvas.clientLeft + canvas.offsetLeft,
+            yAbsolute: y + canvas.clientTop + canvas.offsetTop,
+            width: width || 0,
+            height: height || 0
+        };
     }
 };
 
