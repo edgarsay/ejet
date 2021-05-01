@@ -337,15 +337,18 @@ MatrixStack.prototype.scale = function (x, y, z) {
 //Text dependency:
 var textCtx = document.createElement("canvas").getContext("2d");
 // Puts text in center of canvas.
-function makeTextCanvas(text, width, height) {
-    textCtx.canvas.width  = width;
+function makeTextCanvas(text, width, height, maxWidth) {
+
+    textCtx.canvas.width = width;
     textCtx.canvas.height = height;
     textCtx.font = "20px monospace";
     textCtx.textAlign = "center";
     textCtx.textBaseline = "middle";
     textCtx.fillStyle = "white";
     textCtx.clearRect(0, 0, textCtx.canvas.width, textCtx.canvas.height);
-    textCtx.fillText(text, width / 2, height / 2);
+    text.split('\n').forEach(function (line, key) {
+        textCtx.fillText(line, width / 2, height / 2 + key * 20, maxWidth || width);
+    });
     return textCtx.canvas;
 }
 
@@ -594,7 +597,7 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
             var count = 3;
             gl.drawArrays(gl.TRIANGLES, 0, count);
         },
-        'square': function (x, y, width, height, rotation) {
+        'square': function (x, y, width, height, rotation, color) {
             gl.useProgram(shaperProgram);
             // Turn on the position attribute
             gl.enableVertexAttribArray(sPosition);
