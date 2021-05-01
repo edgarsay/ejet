@@ -50,13 +50,14 @@ var Component = {
         };
     },
     /**
-     * @param {String} typeOfShape - triangle or square
+     * @param {String} typeOfShape - 'triangle' or 'square'
      * @param {Number} width
      * @param {Number} height
+     * @param {String} color - Hex '#FF0000'
      * @param {Number} offSetX
      * @param {Number} offSetY
      */
-    shape: function (typeOfShape, width, height, offSetX, offSetY) {
+    shape: function (typeOfShape, width, height, color, offSetX, offSetY) {
         if (offSetX !== 0) {
             offSetX = offSetX || -width / 2;
         }
@@ -69,6 +70,7 @@ var Component = {
             typeOfShape: typeOfShape || 'triangle',
             width: width || 0,
             height: height || 0,
+            color: color || '#FF0000', //red
             offSetX: offSetX,
             offSetY: offSetY
         };
@@ -261,7 +263,9 @@ var System = {
             transform.x + shape.offSetX,
             transform.y + shape.offSetY,
             shape.width,
-            shape.height
+            shape.height,
+            transform.rotation,
+            shape.color
         );
         matrixStack.restore();
     },

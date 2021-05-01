@@ -131,6 +131,19 @@ var shadersSource = {
         }
         var lastRender = 0;
         window.requestAnimationFrame(loop);
+    },
+    hexToRgbArray = function (hex) {
+        var c;
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+            c = hex.substring(1).split('');
+            if (c.length === 3) {
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c = '0x' + c.join('');
+            return [(c >> 16) & 255, (c >> 8) & 255, c & 255];
+        }
+        console.error(hex);
+        throw new Error('Bad Hex');
     };
 var m4 = {
     identity: function () {
@@ -554,7 +567,8 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
     drawShape = {
-        'triangle': function (x, y, width, height, rotation) {
+        'triangle': function (x, y, width, height, rotation, color) {
+            var count = 3, colorArray = [], i = 0;
             gl.useProgram(shaperProgram);
             // Turn on the position attribute
             gl.enableVertexAttribArray(sPosition);
@@ -577,27 +591,27 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
             gl.enableVertexAttribArray(sColor);
             // Bind the color buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
+            while (i < count) {
+                colorArray = colorArray.concat(hexToRgbArray(color));
+                i += 1;
+            }
             gl.bufferData(
                 gl.ARRAY_BUFFER,
-                new Uint8Array([
-                    255, 0, 0,
-                    255, 0, 0,
-                    255, 0, 0
-                ]),
+                new Uint8Array(colorArray),
                 gl.STATIC_DRAW
             );
             gl.vertexAttribPointer(sColor, 3, gl.UNSIGNED_BYTE, true, 0, 0);
             var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
-            matrix = m4.zRotate(matrix, rotation || 0);
+            matrix = m4.zRotate(matrix, rotation);
             matrix = m4.translate(matrix, x, y, 0);
             matrix = m4.scale(matrix, width, height, 1);
             // Set the matrix.
             gl.uniformMatrix4fv(sMatrix, false, matrix);
             // Draw the geometry.
-            var count = 3;
             gl.drawArrays(gl.TRIANGLES, 0, count);
         },
         'square': function (x, y, width, height, rotation, color) {
+            var count = 6, colorArray = [], i = 0;
             gl.useProgram(shaperProgram);
             // Turn on the position attribute
             gl.enableVertexAttribArray(sPosition);
@@ -626,24 +640,20 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
 
             // Bind the color buffer.
             gl.bindBuffer(gl.ARRAY_BUFFER, sColorBuffer);
-
+            while (i < count) {
+                colorArray = colorArray.concat(hexToRgbArray(color));
+                i += 1;
+            }
             gl.bufferData(
                 gl.ARRAY_BUFFER,
-                new Uint8Array([
-                    255, 0, 0,
-                    255, 0, 0,
-                    255, 0, 0,
-                    255, 0, 0,
-                    255, 0, 0,
-                    255, 0, 0
-                ]),
+                new Uint8Array(colorArray),
                 gl.STATIC_DRAW
             );
 
             gl.vertexAttribPointer(sColor, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
             var matrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
-            matrix = m4.zRotate(matrix, rotation || 0);
+            matrix = m4.zRotate(matrix, rotation);
             matrix = m4.translate(matrix, x, y, 0);
             matrix = m4.scale(matrix, width, height, 1);
 
@@ -651,7 +661,6 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
             gl.uniformMatrix4fv(sMatrix, false, matrix);
 
             // Draw the geometry.
-            var count = 6;
             gl.drawArrays(gl.TRIANGLES, 0, count);
         }
     };
