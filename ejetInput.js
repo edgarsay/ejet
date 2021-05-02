@@ -377,7 +377,7 @@ var ejetInput = function () {
     that.prototype.onMouseOver = function(entity, action) {
         var hitBox = entity.get('hitBox');
         var transform = entity.get('transform');
-        if (!hitBox && !transform) {
+        if (!hitBox || !transform) {
             return;
         }
         var x = hitBox.xAbsolute + transform.x,
@@ -399,7 +399,7 @@ var ejetInput = function () {
         }
         var hitBox = entity.get('hitBox'),
             transform = entity.get('transform');
-        if (!hitBox && !transform) {
+        if (!hitBox || !transform) {
             return;
         }
         var x = hitBox.xAbsolute + transform.x,

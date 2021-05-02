@@ -2,7 +2,7 @@
  ejetInput, drawShape, createTextTextureInfo, drawText*/
 'use strict';
 
-var MAX_ENTITYS = 2;
+var MAX_ENTITYS = 50;
 
 var Component = {
     transform: function (x, y, scaleX, scaleY, rotation) {
@@ -144,13 +144,13 @@ var Component = {
             currFrame: 0,
             interval: 0,
             fps: 1000 / (fps || 4),
-            frames: finalText,
+            finalText: finalText,
             length: finalText.length + 1,
             loop: loop || false,
             stop: stop || false,
         };
     },
-    hitBox: function(x, y, width, height){
+    hitBox: function (x, y, width, height) {
         if (x !== 0) {
             x = x || -width / 2;
         }
@@ -172,7 +172,7 @@ var Component = {
 
 var Holder = {};
 Object.keys(Component).forEach(function (name) {
-    Holder[name] = new Array(MAX_ENTITYS).fill(Component[name]());
+    Holder[name] = new Array(MAX_ENTITYS - 1).fill(Component[name]());
 });
 
 var EntityCounter = 0,
@@ -213,6 +213,10 @@ var EntityCounter = 0,
         };
 
         EntityCounter += 1;
+
+        if (EntityCounter > MAX_ENTITYS) {
+            throw Error('Too many Entity! (Increase the MAX_ENTITYS number)');
+        }
 
         return nEntity;
     };
@@ -347,7 +351,7 @@ var System = {
             currFrame = (currFrame + 1) % len;
             interval = 0;
             //update sprite on entity if necessary
-            text.text = animation.frames.slice(0, currFrame);
+            text.text = animation.finalText.slice(0, currFrame);
         }
         if (!animation.loop && currFrame === len - 1) {
             animation.stop = true;
