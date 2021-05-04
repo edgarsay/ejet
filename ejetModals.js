@@ -34,18 +34,22 @@ var createElement = function (type) {
 /**
  *  Criar um modal basico com dois botões 'V' e 'X'
  */
-var criarModalQuestao = function () {
-    var body = document.body;
+var criarModalQuestao = function (title) {
+    var documentBody = document.body;
     var modal = {},
-        conteiner = createElement('div')
+        container = createElement('div')
             .setClassName('ejet-modal')
-            .adicionarNoFinal(body),
-        modalContent = createElement('div')
+            .adicionarNoInicio(documentBody),
+        body = createElement('div')
             .setClassName('ejet-modal-content')
-            .adicionarNoFinal(conteiner),
+            .adicionarNoFinal(container),
+        title = createElement('div')
+            .setClassName('ejet-title')
+            .setInnerHTML(title || '')
+            .adicionarNoFinal(body),
         buttonsDiv = createElement('div')
             .setClassName('ejet-buttons-div')
-            .adicionarNoFinal(modalContent),
+            .adicionarNoFinal(body),
         vButton = createElement('span')
             .setClassName('ejet-button')
             .setInnerHTML('✔')
@@ -54,15 +58,16 @@ var criarModalQuestao = function () {
             .setClassName('ejet-button')
             .setInnerHTML('✘')
             .adicionarNoFinal(buttonsDiv),
-        trocarVisibilidade = function () {
-            conteiner.classList.toggle("ejet-show-modal");
+        toggle = function () {
+            container.classList.toggle("ejet-show-modal");
         };
-    modal.conteiner = conteiner;
-    modal.corpo = modalContent;
-    modal.botoes = buttonsDiv;
-    modal.trocarVisibilidade = trocarVisibilidade;
-    modal.v = trocarVisibilidade;
-    modal.x = trocarVisibilidade;
+    modal.container = container;
+    modal.body = body;
+    modal.title = title;
+    modal.buttonsDiv = buttonsDiv;
+    modal.toggle = toggle;
+    modal.v = toggle;
+    modal.x = toggle;
     vButton.addEventListener('click', modal.v);
     xButton.addEventListener('click', modal.x);
     modal.setV = function (acao) {
