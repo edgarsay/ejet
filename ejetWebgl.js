@@ -376,7 +376,7 @@ var loadImageAndCreateTextureInfo = null, gl = null, canvas = {},
         texcoordBuffer = null, texcoords = null, drawImage = null,
         drawShape = null, matrixStack = null, createTextTextureInfo = function(){},
         textProgram = null, drawText = null, tColor,
-        init = function (canvasQuerySelector) {
+        ejetWebglInit = function (canvasQuerySelector) {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
     canvas = document.querySelector(canvasQuerySelector);

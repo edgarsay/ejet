@@ -1,7 +1,8 @@
 /*global Array*/
 'use strict';
 
-var ejetInput = function () {
+var ejetInput = null,
+    ejetInputInit = function () {
     var realState = {
         keyStates: new Array(256),
         gamepadStates: new Array(16),
@@ -356,7 +357,7 @@ var ejetInput = function () {
         realState.keyStates[e.which] = false;
     };
 
-    window.onmousedown = function (e) {
+    canvas.onmousedown = function (e) {
         realState.mouseStates[e.button] = true;
     };
 
@@ -415,5 +416,5 @@ var ejetInput = function () {
     // initializes *realState*
     init();
 
-    return new that;
-}();
+    ejetInput = new that;
+};
