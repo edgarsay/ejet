@@ -34,7 +34,7 @@ var createElement = function (type) {
 /**
  *  Criar um modal basico com dois botões 'V' e 'X'
  */
-var criarModalQuestao = function (title) {
+var criarModalQuestao = function (title, description) {
     var documentBody = document.body;
     var modal = {},
         container = createElement('div')
@@ -45,8 +45,7 @@ var criarModalQuestao = function (title) {
             .adicionarNoFinal(container),
         title = createElement('div')
             .setClassName('ejet-title')
-            .setInnerHTML(title || '')
-            .adicionarNoFinal(body),
+            .setInnerHTML(title || ''),
         buttonsDiv = createElement('div')
             .setClassName('ejet-buttons-div')
             .adicionarNoFinal(body),
@@ -60,14 +59,28 @@ var criarModalQuestao = function (title) {
             .adicionarNoFinal(buttonsDiv),
         toggle = function () {
             container.classList.toggle("ejet-show-modal");
+        },
+        show = function () {
+            container.classList.add("ejet-show-modal");
+        },
+        hide = function () {
+            container.classList.remove("ejet-show-modal");
         };
     modal.container = container;
     modal.body = body;
-    modal.title = title;
+    if (description) {
+        modal.description = createElement('textarea')
+            .setClassName('ejet-description')
+            .setInnerHTML(description)
+            .adicionarNoInicio(body);
+    }
+    modal.title = title.adicionarNoInicio(body);
     modal.buttonsDiv = buttonsDiv;
     modal.toggle = toggle;
+    modal.show = show;
+    modal.hide = hide;
     modal.v = toggle;
-    modal.x = toggle;
+    modal.x = hide;
     vButton.addEventListener('click', modal.v);
     xButton.addEventListener('click', modal.x);
     modal.setV = function (acao) {
