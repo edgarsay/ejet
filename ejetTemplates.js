@@ -5,6 +5,22 @@ drawText, createTextTextureInfo, shuffle, criarModalQuestao
 drawTriangle*/
 'use strict';
 
+/**
+ * @example
+ * ejetJogoDaMemoria('#canvas',
+ *  {
+ *      'Assunto 1': "Descrição 1",
+ *      'Assunto 2': "Descrição 2",
+ *      'Assunto 3': "Descrição 3",
+ *      'Assunto 4': "Descrição 4",
+ *      'Assunto 5': "Descrição 5",
+ *  }, function (erros) {
+ *      console.log(erros);
+ *  });
+ * @param {String} conteiner - CSS Selector
+ * @param {JSON} dados - max 10
+ * @param {Function} final 
+ */
 var ejetJogoDaMemoria = function (conteiner, dados, final) {
     ejetWebglInit(conteiner);
     ejetInputInit();
