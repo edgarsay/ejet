@@ -85,13 +85,14 @@ var Component = {
      * @param {Boolean} pixelart
      */
     text: function (text, width, height, offSetX, offSetY, color, pixelart) {
+        text = text || '';
+        var newLines = text.match(/\n/g) || [];
         if (offSetX !== 0) {
             offSetX = offSetX || -width / 2;
         }
         if (offSetY !== 0) {
-            offSetY = offSetY || -height / 2;
+            offSetY = offSetY || (-height / 2 - (newLines.length * 10));
         }
-        text = text || '';
         return {
             null: true,
             type: 'text',
@@ -144,7 +145,15 @@ var Component = {
             currFrame: 0,
             interval: 0,
             fps: 1000 / (fps || 4),
-            finalText: finalText,
+            _finalText: finalText,
+            get finalText(){
+                return this._finalText;
+            },
+            set finalText(value){
+                this.currFrame = 0;
+                this.length = value.length + 1;
+                this._finalText = value;
+            },
             length: finalText.length + 1,
             loop: loop || false,
             stop: stop || false,
