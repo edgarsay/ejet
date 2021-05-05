@@ -365,9 +365,9 @@ var ejetInput = null,
         realState.mouseStates[e.button] = false;
     };
 
-    window.onmousemove = function (e) {
-        realState.mousePosition.x = e.clientX;
-        realState.mousePosition.y = e.clientY;
+    canvas.onmousemove = function (e) {
+        realState.mousePosition.x = e.offsetX;
+        realState.mousePosition.y = e.offsetY;
     }
 
     /**
