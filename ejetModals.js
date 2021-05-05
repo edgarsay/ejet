@@ -73,6 +73,7 @@ var criarModalQuestao = function (title, description) {
             .setClassName('ejet-description')
             .setInnerHTML(description)
             .adicionarNoInicio(body);
+        modal.description.readOnly = true;
     }
     modal.title = title.adicionarNoInicio(body);
     modal.buttonsDiv = buttonsDiv;
