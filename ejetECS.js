@@ -171,25 +171,29 @@ var Component = {
             type: 'hitBox',
             x: x || 0,
             y: y || 0,
-            xAbsolute: x + canvas.clientLeft + canvas.offsetLeft,
-            yAbsolute: y + canvas.clientTop + canvas.offsetTop,
+            xAbsolute: x + canvas.clientLeft, // + canvas.offsetLeft,
+            yAbsolute: y + canvas.clientTop, //+ canvas.offsetTop,
             width: width || 0,
             height: height || 0
         };
     }
 };
 
-var Holder = {};
-Object.keys(Component).forEach(function (name) {
-    Holder[name] = new Array(MAX_ENTITYS - 1).fill(Component[name]());
-});
+var Holder = {},
+    EntityCounter = 0,
+    cleanAllEntitysComponents = function () {
+        Holder = {}
+        Object.keys(Component).forEach(function (name) {
+            Holder[name] = new Array(MAX_ENTITYS - 1).fill(Component[name]());
+        });
+        EntityCounter = 0;
+    };
+cleanAllEntitysComponents();
 
-var EntityCounter = 0,
-    Entity = function () {
-        var nEntity = {
-            id: EntityCounter,
-            children: []
-        };
+var Entity = function () {
+        var nEntity = {};
+        nEntity.id = EntityCounter;
+        nEntity.children = [];
         nEntity.add = function (component) {
             try {
                 var type = component.type;

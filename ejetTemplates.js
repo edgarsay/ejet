@@ -2,7 +2,7 @@
 ejetWebglInit, ejetInputInit,
 drawImage, setLoop, matrixStack, Entity, Component, System, ejetInput,
 drawText, createTextTextureInfo, shuffle, criarModalQuestao
-drawTriangle*/
+drawTriangle, cleanAllEntitysComponents*/
 'use strict';
 
 /**
@@ -19,12 +19,15 @@ drawTriangle*/
  *  });
  * @param {String} conteiner - CSS Selector
  * @param {JSON} dados - max 10
- * @param {Function} final 
+ * @param {Function} final
  */
 var ejetJogoDaMemoria = function (conteiner, dados, final) {
+    cleanAllEntitysComponents();
     ejetWebglInit(conteiner);
     ejetInputInit();
 
+    /*test mouse posstion */
+    var mouse = new Entity().add(Component.transform()).add(Component.shape('square', 5, 5));
 
     var scaleScreen = 2,
     // pixels
@@ -47,7 +50,7 @@ var ejetJogoDaMemoria = function (conteiner, dados, final) {
                 .add(Component.shape('square', 150, 150, color))
                 .add(Component.text(text, 150, 150, null, null, [0, 0, 0, 1]))
                 .add(Component.textAnimation(text, 5))
-                .add(Component.hitBox(-150 / 2, -150 / 2, 150, 150));
+                .add(Component.hitBox(null, null, 150, 150));
         },
         createOptions = function (x, y, listOfStrings, backgroundColor, color) {
             var subjectOptions = new Entity()
@@ -190,5 +193,9 @@ var ejetJogoDaMemoria = function (conteiner, dados, final) {
         ejetInput.update();
 
         update(delta);
+        /*mouse positon*/
+        mouse.get('transform').x = ejetInput.mousePosition.x;
+        mouse.get('transform').y = ejetInput.mousePosition.y;
+        System.renderShape(mouse);
     });
 };

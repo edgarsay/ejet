@@ -28,15 +28,17 @@ var ejetInput = null,
 
     that.useRealState = false;
 
-    that.mousePosition = {
+    that.prototype.mousePosition = {
         x: 0,
         y: 0
-    }
+    };
+    that.mousePosition = that.prototype.mousePosition;
 
-    that.lastMousePosition = {
+    that.prototype.lastMousePosition = {
         x: 0,
         y: 0
-    }
+    };
+    that.lastMousePosition = that.prototype.lastMousePosition;
 
     // initializes all the keyStates to their resting
     // position - not pressed
@@ -368,10 +370,11 @@ var ejetInput = null,
     canvas.onmousemove = function (e) {
         realState.mousePosition.x = e.offsetX;
         realState.mousePosition.y = e.offsetY;
+        that.mouseX = e.offsetX;
+        that.mouseY = e.offsety;
     }
 
     /**
-     * 
      * @param {Entity} entity - entity with a hitBox component
      * @param {Function} action
      */
