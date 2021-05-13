@@ -27,7 +27,7 @@ var ejetJogoDaMemoria = function (conteiner, dados, final) {
     ejetInputInit();
 
     /*test mouse posstion */
-    var mouse = new Entity().add(Component.transform()).add(Component.shape('square', 5, 5));
+    // var mouse = new Entity().add(Component.transform()).add(Component.shape('square', 5, 5));
 
     var scaleScreen = 2,
     // pixels
@@ -194,8 +194,8 @@ var ejetJogoDaMemoria = function (conteiner, dados, final) {
 
         update(delta);
         /*mouse positon*/
-        mouse.get('transform').x = ejetInput.mousePosition.x;
-        mouse.get('transform').y = ejetInput.mousePosition.y;
-        System.renderShape(mouse);
+        // mouse.get('transform').x = ejetInput.mousePosition.x;
+        // mouse.get('transform').y = ejetInput.mousePosition.y;
+        // System.renderShape(mouse);
     });
 };
