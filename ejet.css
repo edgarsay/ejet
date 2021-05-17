@@ -130,9 +130,7 @@ body {
 }
 
 .ejet-card.ejet-box-warm:hover {
-  margin: 7.5px;
-  height: 130px;
-  width: 130px;
+  transform: translate(0, -5px);
 }
 
 .ejet-card-select {
@@ -155,9 +153,7 @@ body {
 }
 
 .ejet-card.ejet-box-blue:hover {
-  margin: 7.5px;
-  height: 130px;
-  width: 130px;
+  transform: translate(0, -5px);
 }
 
 .ejet-box-success {
