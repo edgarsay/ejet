@@ -35,26 +35,25 @@ var ejetJogoDaMemoria = function (conteinerSelector, conteudo, final) {
                 alignItems: 'center',
                 justifyContent: 'center'
             })
-            .addAtTheStart(container),
-        exclamation = createElement('div')
-            .setClassName('ejet-exclamation ejet-flex-center')
-            .setStyle({
-                width: '100px',
-                height: '100px',
-                fontSize: '75px'
-            })
-            .setInnerHTML(ejetSVG.question)
-            .addAtTheEnd(message),
-        messageText = createElement('div')
-            .setInnerHTML('Faça a correspondência dos conceitos com as ' +
-                    'respectivas explicações, clicando numa carta e na sua ' +
-                    'correspondente.')
-            .setStyle({
-                fontSize: '20px',
-                width: '740px',
-                marginLeft: '10px'
-            })
-            .addAtTheEnd(message),
+            .addAtTheStart(container)
+            .addElement(createElement('div')
+                .setClassName('ejet-exclamation ejet-flex-center')
+                .setStyle({
+                    width: '100px',
+                    height: '100px',
+                    fontSize: '75px'
+                })
+                .setInnerHTML(ejetSVG.question))
+            .addElement(createElement('div')
+                .setInnerHTML('Faça a correspondência dos conceitos com as ' +
+                        'respectivas explicações, clicando numa carta e na sua ' +
+                        'correspondente.')
+                .setStyle({
+                    fontSize: '20px',
+                    width: '740px',
+                    marginLeft: '10px'
+                })
+        ),
         cardDimentions = 125,
         cardGap = 10,
         baseCard = createElement('div')
@@ -97,6 +96,11 @@ var ejetJogoDaMemoria = function (conteinerSelector, conteudo, final) {
             errors[innerHTML] = 0;
         }
         newCard.setInnerHTML(innerHTML).addAtTheEnd(subjectContainer);
+        i = 15;
+        while (i > 0 && newCard.scrollHeight > newCard.clientHeight) {
+            newCard.setStyle({fontSize: (i - 2) + 'px'});
+            i -= 1;
+        }
     });
     ejetRange(0, 9, 1, function (i) {
         var newCard = baseCard.clone();
@@ -136,5 +140,10 @@ var ejetJogoDaMemoria = function (conteinerSelector, conteudo, final) {
             };
         }
         newCard.setInnerHTML(innerHTML).addAtTheEnd(descriptionContainer);
+        i = 15;
+        while (i > 0 && newCard.scrollHeight > newCard.clientHeight) {
+            newCard.setStyle({fontSize: (i - 2) + 'px'});
+            i -= 1;
+        }
     });
 };
