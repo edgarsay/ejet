@@ -29,9 +29,14 @@
   }
 }
 
-body {
+.ejet-container {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  box-sizing: border-box;
 }
+.ejet-container *{
+  box-sizing: inherit;
+}
+
 .ejet-modal {
   position: fixed;
   left: 0;
@@ -125,7 +130,7 @@ body {
 }
 
 .ejet-card.ejet-box-warm {
-  margin: 10px;
+  margin: var(--cardGap);;
   cursor: pointer;
 }
 
@@ -148,7 +153,7 @@ body {
 }
 
 .ejet-card.ejet-box-blue {
-  margin: 10px;
+  margin: var(--cardGap);;
   cursor: pointer;
 }
 
@@ -162,7 +167,7 @@ body {
 }
 
 .ejet-card.ejet-box-success {
-  margin: 10px;
+  margin: var(--cardGap);;
   cursor: pointer;
 }
 

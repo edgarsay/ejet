@@ -18,7 +18,8 @@
  * @param {Function} final
  */
 var ejetJogoDaMemoria = function (conteinerSelector, conteudo, final) {
-    var container = document.querySelector(conteinerSelector),
+    var container = createElement(document.querySelector(conteinerSelector))
+        .setClassName('ejet-container'),
         background = createElement('div')
             .setClassName('ejet-background-gray ejet-flex-center')
             .setStyle({
