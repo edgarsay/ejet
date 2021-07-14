@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+    <link rel="stylesheet" href="ejet.css">
+</head>
+<body class="ejet-flex-center">
+    <div id="game"></div>
+    <script src="ejetUtils.js"></script>
+    <script src="ejetHTML.js"></script>
+    <script src="ejetTemplates.js"></script>
+    <script>
+        ejetJogoDaMemoria(
+            "#game",
+            {
+                "conteudo 1": "conseito 1",
+                "conteudo 2": "conseito 2",
+                "conteudo 3": "conseito 3"
+            },
+            ()=>{}
+            );
+    </script>
+</body>
+</html>
