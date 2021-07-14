@@ -21,7 +21,7 @@ var ejetJogoDaMemoria = function (conteinerSelector, conteudo, final) {
     var container = createElement(document.querySelector(conteinerSelector))
         .setClassName('ejet-container'),
         background = createElement('div')
-            .setClassName('ejet-background-gray ejet-flex-center')
+            .setClassName('ejet-background-animation ejet-flex-center')
             .setStyle({
                 width: '960px',
                 height: '470px'
